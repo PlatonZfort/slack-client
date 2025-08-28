@@ -56,7 +56,13 @@ class Payload implements \ArrayAccess, \JsonSerializable
      */
     public function toJson()
     {
-        return json_encode($this->data, true);
+        $json = json_encode($this->data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new \RuntimeException('JSON encoding failed: ' . json_last_error_msg());
+        }
+        
+        return $json;
     }
 
     /**

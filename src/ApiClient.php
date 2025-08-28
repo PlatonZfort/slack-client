@@ -380,12 +380,30 @@ class ApiClient
      */
     public function fileUpload(File $file, array $channels)
     {
+        $filePath = $file->getPath();
+        
+        // Security: Validate file path to prevent path traversal attacks
+        if (empty($filePath) || !is_string($filePath)) {
+            throw new ApiException('Invalid file path provided.');
+        }
+        
+        // Resolve the real path to prevent path traversal
+        $realPath = realpath($filePath);
+        if ($realPath === false || !file_exists($realPath)) {
+            throw new ApiException('File does not exist or path is invalid.');
+        }
+        
+        // Additional security check to ensure file is readable
+        if (!is_readable($realPath)) {
+            throw new ApiException('File is not readable.');
+        }
+
         $multipart = !$file->isSnippet();
 
         $options = [
             'title' => $file->getTitle(),
-            'content' => !$multipart ? file_get_contents($file->getPath()) : null,
-            'file' => $multipart ? fopen($file->getPath(), 'r') : null,
+            'content' => !$multipart ? file_get_contents($realPath) : null,
+            'file' => $multipart ? fopen($realPath, 'r') : null,
             'initial_comment' => $file->getInitialComment(),
             'channels' => implode(',', $channels),
         ];
