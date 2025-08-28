@@ -459,9 +459,8 @@ class RealTimeClient extends ApiClient
                     break;
 
                 case 'channel_created':
-                    $this->getChannelById($payload['channel']['id'])->then(function (Channel $channel) {
-                        $this->channels[$channel->getId()] = $channel;
-                    });
+                    $channel = new Channel($this, $payload['channel']);
+                    $this->channels[$channel->getId()] = $channel;
                     break;
 
                 case 'channel_deleted':
@@ -488,7 +487,7 @@ class RealTimeClient extends ApiClient
 
                 case 'group_rename':
                     $this->groups[$payload['group']['id']]->data['name']
-                        = $payload['channel']['name'];
+                        = $payload['group']['name'];
                     break;
 
                 case 'group_archive':
